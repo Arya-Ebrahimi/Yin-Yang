@@ -87,7 +87,11 @@ private:
             const std::shared_ptr<yinyang_msgs::srv::Pipi::Request> request,
             const std::shared_ptr<yinyang_msgs::srv::Pipi::Response> response)
     {
-        RCLCPP_INFO(this->get_logger(), "%ld", request->len);
+        
+        std::stringstream ss;
+        ss << "";
+        ss << request->a;
+        RCLCPP_INFO(this->get_logger(), ss.str().c_str());
         
         int checksum = 0;
         for (int i = 0; i < (int)request->len; i++) {

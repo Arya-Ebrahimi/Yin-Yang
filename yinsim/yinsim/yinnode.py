@@ -53,7 +53,7 @@ class Yin(Node):
         
         if 'bye' in goal_handle.request.a:
             self.get_logger().info('accepted')
-
+            self.get_logger().info(goal_handle.request.a)
             feedback_msg = Bye.Feedback()
             opacity = self.get_parameter('opacity').get_parameter_value().integer_value
             
@@ -70,6 +70,7 @@ class Yin(Node):
 
     def _timer_cb(self):
         # self.get_logger().info('timer')
+        
         if(self.time_to_send and self.count < len(self.str)):
             shout = self.get_parameter('shout').get_parameter_value().bool_value
             
