@@ -1,10 +1,11 @@
 import rclpy
+from rclpy.action import ActionServer
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup, ReentrantCallbackGroup
-
 from std_msgs.msg import String
+import time
 
+from yinyang_msgs.action import Bye
 from yinyang_msgs.srv import Pipi
 
 
@@ -21,6 +22,15 @@ class Yin(Node):
 
         self.publisher_ = self.create_publisher(String, 'conversation', 10)
         
+        self.action_server = ActionServer(
+            self, 
+            Bye,
+            'bye',
+            execute_callback=self.execute_callback
+        )
+        
+        self.declare_parameter('shout', True)
+        self.declare_parameter('opacity', 100)
         
         self.req = Pipi.Request()
         self.count = 0
@@ -38,12 +48,39 @@ class Yin(Node):
             self.get_logger().info('waiting...')
 
         self.time_to_send = True
+        
+    def execute_callback(self, goal_handle):
+        
+        if 'bye' in goal_handle.request.a:
+            self.get_logger().info('accepted')
+
+            feedback_msg = Bye.Feedback()
+            opacity = self.get_parameter('opacity').get_parameter_value().integer_value
+            
+            for i in range (opacity, -1, -1):
+                feedback_msg.opacity = i
+                goal_handle.publish_feedback(feedback_msg)
+                time.sleep(0.01)
+            
+            goal_handle.succeed()
+            result = Bye.Result()
+            result.b = 'farewell'
+            return result            
+
 
     def _timer_cb(self):
         # self.get_logger().info('timer')
         if(self.time_to_send and self.count < len(self.str)):
-            self.req.a = self.str[self.count]
-            self.req.len = len(self.str[self.count])
+            shout = self.get_parameter('shout').get_parameter_value().bool_value
+            
+            req_str = self.str[self.count]
+            l = len(req_str)
+            if shout:
+                req_str = '**' + req_str + '**'
+                l += 4
+            
+            self.req.a = req_str
+            self.req.len = l
             self.count +=1
             _ = self.cli.call_async(self.req)
             self.get_logger().info('request sent')
@@ -53,6 +90,7 @@ class Yin(Node):
     def srv_callback(self, req, res):
         self.get_logger().info(req.a)
         msg = String()
+        
         s = 'Yang said: '+ req.a + ', ' + str(req.len)
         sum = 0
         for word in req.a:

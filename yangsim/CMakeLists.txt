@@ -11,6 +11,9 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(yinyang_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(rclcpp_components REQUIRED)
+
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -18,7 +21,7 @@ find_package(std_msgs REQUIRED)
 
 add_executable(yangnode src/yangnode.cpp)
 ament_target_dependencies(yangnode 
-rclcpp yinyang_msgs std_msgs)
+rclcpp yinyang_msgs std_msgs rclcpp_action rclcpp_components)
 
 target_include_directories(yangnode PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
