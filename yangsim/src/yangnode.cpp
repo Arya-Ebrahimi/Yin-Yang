@@ -139,7 +139,9 @@ private:
       ss << "Result received: ";
       ss << result.result->b;
       RCLCPP_INFO(this->get_logger(), ss.str().c_str());
-      rclcpp::shutdown();
+
+      throw 0;
+      // rclcpp::shutdown();
     }
 
     void timer_callback()
@@ -199,9 +201,17 @@ int main(int argc, char* argv[])
     executor.add_node(client_node);
 
     RCLCPP_INFO(client_node->get_logger(), "Starting client node, shut down with CTRL-C");
-    executor.spin();
     RCLCPP_INFO(client_node->get_logger(), "Keyboard interrupt, shutting down.\n");
+    try
+    {
+      executor.spin();
 
-    rclcpp::shutdown();
+    }
+    catch(int error)
+    {
+      rclcpp::shutdown();
+    }
+    
+
     return 0;
 }

@@ -13,7 +13,7 @@ class Yin(Node):
     
     def __init__(self):
         super().__init__('yin')
-        
+                
         client_cb_group = None
         timer_cb_group = None
         self.srv = self.create_service(Pipi, 'yin_service', self.srv_callback)
@@ -48,6 +48,8 @@ class Yin(Node):
             self.get_logger().info('waiting...')
 
         self.time_to_send = True
+        self.finish = False
+        
         
     def execute_callback(self, goal_handle):
         
@@ -65,12 +67,16 @@ class Yin(Node):
             goal_handle.succeed()
             result = Bye.Result()
             result.b = 'farewell'
+            self.finish = True
+            self.time_ = time.time()
             return result            
 
 
     def _timer_cb(self):
-        # self.get_logger().info('timer')
-        
+        if self.finish:
+            if (time.time() - self.time_ > 2):
+                raise SystemExit
+            
         if(self.time_to_send and self.count < len(self.str)):
             shout = self.get_parameter('shout').get_parameter_value().bool_value
             
@@ -103,17 +109,22 @@ class Yin(Node):
         self.publisher_.publish(msg)
         res.checksum = sum
         self.time_to_send = True
-        # self.send_req(self.str[self.count])
         return res
 
 
 def main(args=None):
     rclpy.init(args=args)
-    yin = Yin()
+    # executor = MultiThreadedExecutor()
 
-    executor = MultiThreadedExecutor()
-    executor.add_node(yin)
-    executor.spin()
+    yin = Yin()
+    
+    try:
+        rclpy.spin(yin)
+    except SystemExit:
+        rclpy.logging.get_logger("Quitting").info('Done')
+    # executor.add_node(yin)
+    # executor.spin()
+    
     yin.destroy_node()
     rclpy.shutdown()
 
